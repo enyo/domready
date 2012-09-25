@@ -21,31 +21,33 @@ module.exports = domready;
  */
 
 function domready(ready) {
+ var fns = [], fn, f = false
+    , doc = document
+    , testEl = doc.documentElement
+    , hack = testEl.doScroll
+    , domContentLoaded = 'DOMContentLoaded'
+    , addEventListener = 'addEventListener'
+    , onreadystatechange = 'onreadystatechange'
+    , readyState = 'readyState'
+    , loaded = /^loade|c/.test(doc[readyState])
 
-  var fns = [], fn, testEl = document.documentElement, hack = testEl.doScroll,
-      domContentLoaded = 'DOMContentLoaded', addEventListener = 'addEventListener',
-      onreadystatechange = 'onreadystatechange', readyState = 'readyState',
-      loaded = /^loade|c/.test(document[readyState]);
- 
   function flush(f) {
-    loaded = 1;
-    while (f = fns.shift()) {
-      f();
-    }
-  };
+    loaded = 1
+    while (f = fns.shift()) f()
+  }
 
-  document[addEventListener] && document[addEventListener](domContentLoaded, fn = function () {
-    document.removeEventListener(domContentLoaded, fn, false)
+  doc[addEventListener] && doc[addEventListener](domContentLoaded, fn = function () {
+    doc.removeEventListener(domContentLoaded, fn, f)
     flush()
-  }, false);
+  }, f)
 
 
-  hack && document.attachEvent(onreadystatechange, fn = function () {
-    if (/^c/.test(document[readyState])) {
-      document.detachEvent(onreadystatechange, fn);
-      flush();
+  hack && doc.attachEvent(onreadystatechange, fn = function () {
+    if (/^c/.test(doc[readyState])) {
+      doc.detachEvent(onreadystatechange, fn)
+      flush()
     }
-  });
+  })
 
   return (ready = hack ?
     function (fn) {
@@ -53,15 +55,14 @@ function domready(ready) {
         loaded ? fn() : fns.push(fn) :
         function () {
           try {
-            testEl.doScroll('left');
+            testEl.doScroll('left')
           } catch (e) {
-            return setTimeout(function() { ready(fn); }, 50);
+            return setTimeout(function() { ready(fn) }, 50)
           }
-          fn();
-        }();
+          fn()
+        }()
     } :
     function (fn) {
-      loaded ? fn() : fns.push(fn);
-    });
-
+      loaded ? fn() : fns.push(fn)
+    })
 }
